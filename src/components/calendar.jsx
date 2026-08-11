@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { Calendar, dateFnsLocalizer } from "react-big-calendar";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 
@@ -9,12 +9,9 @@ import getDay from "date-fns/getDay";
 import { enUS } from "date-fns/locale";
 
 import { useDispatch, useSelector } from "react-redux";
-
 import {
   addPost,
   selectPost,
-  setFilter,
-  setSearch,
 } from "../features/posts/postSlice";
 
 const locales = {
@@ -29,202 +26,214 @@ const localizer = dateFnsLocalizer({
   locales,
 });
 
-const colors = {
+const platformColors = {
   Instagram: "#C13584",
   LinkedIn: "#0077B5",
   Facebook: "#1877F2",
-  Twitter: "#1DA1F2",
-  YouTube: "#FF0000",
 };
 
 function CalendarView() {
   const dispatch = useDispatch();
 
-  const { posts, filter, search } = useSelector(
-    (state) => state.posts
-  );
+  const posts = useSelector((state) => state.posts.posts);
 
   const [showModal, setShowModal] = useState(false);
-
-  const [selectedDate, setSelectedDate] = useState(new Date());
-
+  const [selectedDate, setSelectedDate] = useState(null);
   const [title, setTitle] = useState("");
-
   const [platform, setPlatform] = useState("Instagram");
 
-  const filteredEvents = useMemo(() => {
-    return posts
-      .filter((post) => {
-        if (filter === "All") return true;
-        return post.platform === filter;
-      })
-      .filter((post) =>
-        post.title.toLowerCase().includes(search.toLowerCase())
-      )
-      .map((post) => ({
-        ...post,
-      }));
-  }, [posts, filter, search]);
-
-  const handleSlot = ({ start }) => {
+  const handleSelectSlot = ({ start }) => {
     setSelectedDate(start);
+    setTitle("");
+    setPlatform("Instagram");
     setShowModal(true);
   };
 
-  const savePost = () => {
-    if (!title.trim()) return;
+  const handleSelectEvent = (event) => {
+    dispatch(selectPost(event));
+  };
 
-    dispatch(
-      addPost({
-        id: Date.now(),
-        title,
-        platform,
-        start: selectedDate,
-        end: selectedDate,
-      })
-    );
+  const handleAddPost = () => {
+    if (!title.trim() || !selectedDate) {
+      return;
+    }
+
+    const start = new Date(selectedDate);
+    const end = new Date(start);
+
+    end.setHours(end.getHours() + 1);
+
+    const newPost = {
+      id: Date.now(),
+      title: title.trim(),
+      platform,
+      start,
+      end,
+    };
+
+    dispatch(addPost(newPost));
 
     setTitle("");
     setPlatform("Instagram");
+    setSelectedDate(null);
     setShowModal(false);
   };
 
-  const totalPosts = posts.length;
-
-  const todayPosts = posts.filter(
-    (p) =>
-      new Date(p.start).toDateString() ===
-      new Date().toDateString()
-  ).length;
-
-  const upcomingPosts = posts.filter(
-    (p) => new Date(p.start) > new Date()
-  ).length;
+  const handleCloseModal = () => {
+    setTitle("");
+    setPlatform("Instagram");
+    setSelectedDate(null);
+    setShowModal(false);
+  };
 
   return (
-    <>
-      <div className="toolbar">
-
-        <input
-          placeholder="🔍 Search Posts"
-          value={search}
-          onChange={(e) =>
-            dispatch(setSearch(e.target.value))
-          }
-        />
-
-        <select
-          value={filter}
-          onChange={(e) =>
-            dispatch(setFilter(e.target.value))
-          }
-        >
-          <option>All</option>
-          <option>Instagram</option>
-          <option>LinkedIn</option>
-          <option>Facebook</option>
-          <option>Twitter</option>
-          <option>YouTube</option>
-        </select>
-
-      </div>
-
-      <div className="stats">
-
-        <div className="card">
-          <h3>Total</h3>
-          <h2>{totalPosts}</h2>
+    <div className="calendar-wrapper">
+      <div className="calendar-header">
+        <div>
+          <h2>Content Schedule</h2>
+          <p>
+            Click a date to schedule a new social media post.
+          </p>
         </div>
 
-        <div className="card">
-          <h3>Today</h3>
-          <h2>{todayPosts}</h2>
-        </div>
+        <div className="calendar-legend">
+          <span>
+            <i
+              style={{
+                backgroundColor: platformColors.Instagram,
+              }}
+            />
+            Instagram
+          </span>
 
-        <div className="card">
-          <h3>Upcoming</h3>
-          <h2>{upcomingPosts}</h2>
-        </div>
+          <span>
+            <i
+              style={{
+                backgroundColor: platformColors.LinkedIn,
+              }}
+            />
+            LinkedIn
+          </span>
 
+          <span>
+            <i
+              style={{
+                backgroundColor: platformColors.Facebook,
+              }}
+            />
+            Facebook
+          </span>
+        </div>
       </div>
 
       <div className="calendar-container">
-
         <Calendar
           localizer={localizer}
-          events={filteredEvents}
+          events={posts}
           startAccessor="start"
           endAccessor="end"
           selectable
           popup
           defaultView="month"
           views={["month", "week", "day"]}
-          style={{ height: 600 }}
-          onSelectSlot={handleSlot}
-          onSelectEvent={(event) =>
-            dispatch(selectPost(event))
-          }
+          style={{ height: 650 }}
+          onSelectSlot={handleSelectSlot}
+          onSelectEvent={handleSelectEvent}
           eventPropGetter={(event) => ({
             style: {
               backgroundColor:
-                colors[event.platform] || "#2563eb",
-              borderRadius: "6px",
+                platformColors[event.platform] || "#2563EB",
               border: "none",
+              borderRadius: "6px",
+              color: "white",
+              fontWeight: "600",
             },
           })}
         />
-
       </div>
 
       {showModal && (
-        <div className="modal">
-
-          <div className="modal-content">
-
-            <h2>Schedule Post</h2>
-
-            <input
-              placeholder="Post Title"
-              value={title}
-              onChange={(e) =>
-                setTitle(e.target.value)
-              }
-            />
-
-            <select
-              value={platform}
-              onChange={(e) =>
-                setPlatform(e.target.value)
-              }
-            >
-              <option>Instagram</option>
-              <option>LinkedIn</option>
-              <option>Facebook</option>
-              <option>Twitter</option>
-              <option>YouTube</option>
-            </select>
-
-            <div className="buttons">
+        <div className="modal-overlay">
+          <div className="schedule-modal">
+            <div className="modal-header">
+              <div>
+                <p className="modal-label">NEW POST</p>
+                <h2>Schedule Post</h2>
+              </div>
 
               <button
-                onClick={() =>
-                  setShowModal(false)
+                className="modal-close"
+                onClick={handleCloseModal}
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="form-group">
+              <label>Post Title</label>
+
+              <input
+                type="text"
+                placeholder="Enter post title"
+                value={title}
+                onChange={(event) =>
+                  setTitle(event.target.value)
                 }
+              />
+            </div>
+
+            <div className="form-group">
+              <label>Platform</label>
+
+              <select
+                value={platform}
+                onChange={(event) =>
+                  setPlatform(event.target.value)
+                }
+              >
+                <option value="Instagram">Instagram</option>
+                <option value="LinkedIn">LinkedIn</option>
+                <option value="Facebook">Facebook</option>
+              </select>
+            </div>
+
+            <div className="form-group">
+              <label>Scheduled Date</label>
+
+              <input
+                type="text"
+                value={
+                  selectedDate
+                    ? format(
+                        selectedDate,
+                        "dd MMMM yyyy"
+                      )
+                    : ""
+                }
+                readOnly
+              />
+            </div>
+
+            <div className="modal-actions">
+              <button
+                className="cancel-button"
+                onClick={handleCloseModal}
               >
                 Cancel
               </button>
 
-              <button onClick={savePost}>
-                Save
+              <button
+                className="save-button"
+                onClick={handleAddPost}
+                disabled={!title.trim()}
+              >
+                Schedule Post
               </button>
-
             </div>
-
           </div>
-
         </div>
       )}
-    </>
+    </div>
   );
 }
 

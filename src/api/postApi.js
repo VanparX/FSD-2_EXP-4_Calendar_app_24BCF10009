@@ -1,47 +1,35 @@
-const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+const wait = (ms) =>
+  new Promise((resolve) => setTimeout(resolve, ms));
 
-let posts = [
-  {
-    id: 1,
-    title: "Instagram Campaign",
-    start: new Date(2026, 7, 10, 10, 0),
-    end: new Date(2026, 7, 10, 11, 0),
-  },
-  {
-    id: 2,
-    title: "LinkedIn Article",
-    start: new Date(2026, 7, 15, 14, 0),
-    end: new Date(2026, 7, 15, 15, 0),
-  },
-];
+let posts = [];
 
 export const fetchPosts = async () => {
-  await delay(500);
+  await wait(300);
   return [...posts];
 };
 
 export const createPost = async (post) => {
-  await delay(500);
+  await wait(300);
 
   posts.push(post);
 
   return post;
 };
 
-export const updatePostApi = async (updatedPost) => {
-  await delay(500);
-
-  posts = posts.map((post) =>
-    post.id === updatedPost.id ? updatedPost : post
-  );
-
-  return updatedPost;
-};
-
 export const deletePostApi = async (id) => {
-  await delay(500);
+  await wait(300);
 
   posts = posts.filter((post) => post.id !== id);
 
   return id;
+};
+
+export const updatePostApi = async (post) => {
+  await wait(300);
+
+  posts = posts.map((item) =>
+    item.id === post.id ? post : item
+  );
+
+  return post;
 };

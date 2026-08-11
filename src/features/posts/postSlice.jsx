@@ -1,49 +1,59 @@
 import { createSlice } from "@reduxjs/toolkit";
 
-const savedPosts = JSON.parse(localStorage.getItem("posts"));
+const defaultPosts = [
+  {
+    id: 1,
+    title: "Instagram Campaign",
+    platform: "Instagram",
+    start: new Date(2026, 7, 12, 10, 0),
+    end: new Date(2026, 7, 12, 11, 0),
+  },
+  {
+    id: 2,
+    title: "LinkedIn Article",
+    platform: "LinkedIn",
+    start: new Date(2026, 7, 15, 14, 0),
+    end: new Date(2026, 7, 15, 15, 0),
+  },
+  {
+    id: 3,
+    title: "Facebook Promotion",
+    platform: "Facebook",
+    start: new Date(2026, 7, 20, 16, 0),
+    end: new Date(2026, 7, 20, 17, 0),
+  },
+];
 
-const initialState = {
-  posts:
-    savedPosts || [
-      {
-        id: 1,
-        title: "Instagram Campaign",
-        platform: "Instagram",
-        start: new Date(2026, 7, 10, 10, 0),
-        end: new Date(2026, 7, 10, 11, 0),
-      },
-      {
-        id: 2,
-        title: "LinkedIn Article",
-        platform: "LinkedIn",
-        start: new Date(2026, 7, 15, 14, 0),
-        end: new Date(2026, 7, 15, 15, 0),
-      },
-      {
-        id: 3,
-        title: "Facebook Promotion",
-        platform: "Facebook",
-        start: new Date(2026, 7, 20, 16, 0),
-        end: new Date(2026, 7, 20, 17, 0),
-      },
-    ],
+const loadPosts = () => {
+  try {
+    const savedPosts = localStorage.getItem("calendarPosts");
 
-  selectedPost: null,
+    if (!savedPosts) {
+      return defaultPosts;
+    }
 
-  filter: "All",
-
-  search: "",
+    return JSON.parse(savedPosts).map((post) => ({
+      ...post,
+      start: new Date(post.start),
+      end: new Date(post.end),
+    }));
+  } catch {
+    return defaultPosts;
+  }
 };
 
 const savePosts = (posts) => {
-  localStorage.setItem("posts", JSON.stringify(posts));
+  localStorage.setItem("calendarPosts", JSON.stringify(posts));
+};
+
+const initialState = {
+  posts: loadPosts(),
+  selectedPost: null,
 };
 
 const postSlice = createSlice({
   name: "posts",
-
   initialState,
-
   reducers: {
     addPost: (state, action) => {
       state.posts.push(action.payload);
@@ -59,27 +69,11 @@ const postSlice = createSlice({
         (post) => post.id !== action.payload
       );
 
-      savePosts(state.posts);
-    },
-
-    updatePost: (state, action) => {
-      const index = state.posts.findIndex(
-        (post) => post.id === action.payload.id
-      );
-
-      if (index !== -1) {
-        state.posts[index] = action.payload;
+      if (state.selectedPost?.id === action.payload) {
+        state.selectedPost = null;
       }
 
       savePosts(state.posts);
-    },
-
-    setFilter: (state, action) => {
-      state.filter = action.payload;
-    },
-
-    setSearch: (state, action) => {
-      state.search = action.payload;
     },
   },
 });
@@ -88,9 +82,6 @@ export const {
   addPost,
   selectPost,
   deletePost,
-  updatePost,
-  setFilter,
-  setSearch,
 } = postSlice.actions;
 
 export default postSlice.reducer;

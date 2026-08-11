@@ -1,5 +1,8 @@
 import { useDispatch, useSelector } from "react-redux";
-import { deletePost, selectPost } from "../features/posts/postSlice";
+import {
+  deletePost,
+  selectPost,
+} from "../features/posts/postSlice";
 
 function PostCard() {
   const dispatch = useDispatch();
@@ -8,92 +11,104 @@ function PostCard() {
     (state) => state.posts.selectedPost
   );
 
-  if (!selectedPost) {
-    return (
-      <div className="post-card">
-        <h2>📌 Selected Post</h2>
+  const handleDelete = () => {
+    if (!selectedPost) {
+      return;
+    }
 
-        <div className="empty-card">
-          <h3>No Post Selected</h3>
-          <p>Click on any event in the calendar to view its details.</p>
-        </div>
-      </div>
-    );
-  }
-
-  const deleteSelected = () => {
-    const confirmDelete = window.confirm(
-      "Delete this scheduled post?"
+    const confirmed = window.confirm(
+      "Are you sure you want to delete this post?"
     );
 
-    if (!confirmDelete) return;
+    if (!confirmed) {
+      return;
+    }
 
     dispatch(deletePost(selectedPost.id));
     dispatch(selectPost(null));
   };
 
-  const badgeColor = {
-    Instagram: "#C13584",
-    LinkedIn: "#0077B5",
-    Facebook: "#1877F2",
-    Twitter: "#1DA1F2",
-    YouTube: "#FF0000",
-  };
+  if (!selectedPost) {
+    return (
+      <div className="post-card empty-post-card">
+        <div className="empty-icon">📅</div>
+
+        <h2>No Post Selected</h2>
+
+        <p>
+          Click a scheduled post in the calendar to
+          view its details.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="post-card">
+      <div className="post-card-header">
+        <div>
+          <p className="post-label">SCHEDULED POST</p>
 
-      <h2>📌 Selected Post</h2>
-
-      <div className="post-details">
-
-        <h3>{selectedPost.title}</h3>
+          <h2>{selectedPost.title}</h2>
+        </div>
 
         <span
           className="platform-badge"
-          style={{
-            background: badgeColor[selectedPost.platform],
-          }}
+          data-platform={selectedPost.platform}
         >
           {selectedPost.platform}
         </span>
+      </div>
 
-        <div className="detail-row">
-          <strong>📅 Date</strong>
+      <div className="post-info">
+        <div className="info-item">
+          <span className="info-label">
+            Date
+          </span>
 
-          <span>
-            {new Date(selectedPost.start).toLocaleDateString()}
+          <span className="info-value">
+            {new Date(
+              selectedPost.start
+            ).toLocaleDateString("en-IN", {
+              day: "2-digit",
+              month: "short",
+              year: "numeric",
+            })}
           </span>
         </div>
 
-        <div className="detail-row">
-          <strong>🕒 Time</strong>
+        <div className="info-item">
+          <span className="info-label">
+            Time
+          </span>
 
-          <span>
-            {new Date(selectedPost.start).toLocaleTimeString([], {
+          <span className="info-value">
+            {new Date(
+              selectedPost.start
+            ).toLocaleTimeString("en-IN", {
               hour: "2-digit",
               minute: "2-digit",
             })}
           </span>
         </div>
 
-        <div className="detail-row">
-          <strong>Status</strong>
+        <div className="info-item">
+          <span className="info-label">
+            Status
+          </span>
 
-          <span className="status">
+          <span className="status-badge">
             Scheduled
           </span>
         </div>
-
-        <button
-          className="delete-btn"
-          onClick={deleteSelected}
-        >
-          🗑 Delete Post
-        </button>
-
       </div>
 
+      <button
+        className="delete-button"
+        onClick={handleDelete}
+      >
+        Delete Post
+      </button>
     </div>
   );
 }

@@ -1,70 +1,27 @@
-import { useEffect, useState } from "react";
 import CalendarView from "../components/calendar";
 import PostCard from "../components/postCard";
 
 function Home() {
-  const [darkMode, setDarkMode] = useState(false);
-
-  useEffect(() => {
-    const savedTheme = localStorage.getItem("theme");
-
-    if (savedTheme === "dark") {
-      setDarkMode(true);
-      document.body.classList.add("dark");
-    }
-  }, []);
-
-  const toggleTheme = () => {
-    if (darkMode) {
-      document.body.classList.remove("dark");
-      localStorage.setItem("theme", "light");
-    } else {
-      document.body.classList.add("dark");
-      localStorage.setItem("theme", "dark");
-    }
-
-    setDarkMode(!darkMode);
-  };
-
   return (
-    <div className="dashboard">
-
-      <header className="hero">
-
-        <div className="hero-top">
-
-          <div>
-            <h1>📅 Social Media Content Planner</h1>
-
-            <p>
-              Schedule and manage your posts efficiently.
-            </p>
-          </div>
-
-          <button
-            className="theme-btn"
-            onClick={toggleTheme}
-          >
-            {darkMode ? "☀️ Light" : "🌙 Dark"}
-          </button>
-
-        </div>
-
+    <main className="home">
+      <header className="page-header">
+        <p className="experiment-label">EXPERIMENT 4</p>
+        <h1>Interactive Content Calendar</h1>
+        <p className="page-description">
+          Schedule and manage social media posts using an interactive calendar.
+        </p>
       </header>
 
-      <div className="dashboard-layout">
-
-        <div className="calendar-section">
+      <section className="content-layout">
+        <div className="calendar-panel">
           <CalendarView />
         </div>
 
-        <div className="sidebar">
+        <aside className="post-panel">
           <PostCard />
-        </div>
-
-      </div>
-
-    </div>
+        </aside>
+      </section>
+    </main>
   );
 }
 
